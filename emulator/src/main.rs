@@ -1,7 +1,8 @@
+use std::collections::HashMap;
+use std::env;
 use std::fs::File;
-use std::io::Read;
+use std::io::{stdin, BufRead, Read};
 use std::path::Path;
-use std::{env, future};
 
 pub fn describe_byte(byte: u8) -> String {
     let operation = byte >> 5;
@@ -63,13 +64,74 @@ fn main() {
 
     println!("{:-^32}", " Running program ");
     run_binary(bytes);
-    println!("");
     println!("{:-^32}", " Program exited ");
 }
 
 /// Run a binary comprised of `bytes`
 pub fn run_binary(bytes: Vec<u8>) {
+    let mut output = 0;
+    let mut registers: HashMap<u8, i32> = HashMap::from([(0, 0)]);
+
     let mut functions: Vec<Vec<u8>> = Vec::new();
+    let mut skip_next = false;
+
+    let mut execute_byte = |byte: u8| {
+        if skip_next {
+            skip_next = false;
+            return ();
+        }
+        let operation = byte >> 5;
+        let immediate = byte & 0b11111;
+        match (operation, immediate) {
+            (0b001, syscall) => match syscall {
+                // print
+                1 => {
+                    println!("{}", output);
+                }
+                // input
+                5 => {
+                    let mut line = String::new();
+                    stdin().lock().read_line(&mut line).unwrap();
+                    line = String::from(line.trim());
+                    output = line
+                        .parse::<i32>()
+                        .expect("Only integers are allowed as input");
+                }
+                // exit
+                10 => {
+                    println!("{:-^32}", " Exit called ");
+                    std::process::exit(0);
+                }
+                _ => {}
+            },
+            (0b010, save) => {
+                registers.insert(save, output);
+            }
+            (0b011, load) => {
+                if let Some(&val) = registers.get(&load) {
+                    output = val;
+                } else {
+                    output = 0;
+                }
+            }
+            (0b101, add) => {
+                if let Some(&val) = registers.get(&add) {
+                    output += val;
+                }
+            }
+            (0b110, addi) => {
+                output += addi as i32;
+            }
+            (0b111, skipeq) => {
+                if let Some(&register) = registers.get(&skipeq) {
+                    if output == register {
+                        skip_next = true;
+                    }
+                }
+            }
+            _ => {}
+        }
+    };
 
     let mut function_started = false;
     let mut current_function = Vec::new();
@@ -82,19 +144,23 @@ pub fn run_binary(bytes: Vec<u8>) {
             0b001_10101 => {
                 function_started = false;
                 functions.push(current_function.clone());
-                println!("{:#?}", &functions);
+                for (i, func) in functions.iter().enumerate() {
+                    println!("-- Function {}", i);
+                    for &instr in func {
+                        print!("{}", describe_byte(instr));
+                        println!();
+                    }
+                    println!();
+                }
                 continue;
             }
             _ => {}
         }
         if function_started {
             current_function.push(byte);
+            continue;
         }
 
-        let operation = byte >> 5;
-        let immediate = byte & 0b11111;
-        match (operation, immediate) {
-            _ => {}
-        }
+        execute_byte(byte);
     }
 }

@@ -225,7 +225,11 @@ fn main() {
     let output_filename = Path::new(dirname).with_extension("bb");
     let mut file = File::create(&output_filename).unwrap();
     file.write_all(&binary[..]).unwrap();
-    println!("File binary compiled to {}", &output_filename.display());
+    println!("Compilation completed successfully!");
+    println!(
+        "Output binary: {}",
+        &output_filename.canonicalize().unwrap().display()
+    );
 }
 
 fn find_entry<'a>(name: &str, objects: &'a Vec<JavaFile>) -> Option<&'a JavaFile> {
@@ -286,10 +290,15 @@ fn compile_chain(chain: Vec<&JavaFile>, objects: &Vec<JavaFile>) -> (Vec<u8>, Ve
                     save = save << 5 | 4;
                     instructions.push(save);
 
-                    // Load index for coroutine
+                    // Load 0
                     let mut load = 0b011;
-                    load = load << 5 | coroutine_idx;
+                    load = load << 5 | 0;
                     instructions.push(load);
+
+                    // Set to index for coroutine
+                    let mut addi = 0b110;
+                    addi = addi << 5 | coroutine_idx;
+                    instructions.push(addi);
 
                     // Increment coroutine_idx (ready for next coroutine)
                     coroutine_idx += 1;

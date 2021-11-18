@@ -15,7 +15,7 @@ Immediate range: 0-31
 | Call syscall                    | `call`   | immediate                                                        | `001`  |   `1`   |
 | Save to register                | `save`   | register id                                                      | `010`  |   `2`   |
 | Load to register                | `load`   | register id                                                      | `011`  |   `3`   |
-| Jump to a block                 | `jump`   | offset (-15 to 15, leading bit is sign, _not_ two's complement ) | `100`  |   `4`   |
+| Jump to address                 | `jump`   | offset (-15 to 15, leading bit is sign, _not_ two's complement ) | `100`  |   `4`   |
 | Add from register               | `add`    | register id                                                      | `101`  |   `5`   |
 | Add immediate                   | `addi`   | immediate                                                        | `110`  |   `6`   |
 | Skip next instruction if equals | `skipeq` | register id                                                      | `111`  |   `7`   |
