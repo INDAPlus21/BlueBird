@@ -2,6 +2,7 @@
 
 The functional BlueJ assambly language. _Now turing complete!_
 
+If it is valid Java code, it _should_ compile to a BlueBird binary.  
 Any BlueBird program is also a valid BlueJ project.
 
 # Language guide
@@ -20,10 +21,10 @@ Any BlueBird program is also a valid BlueJ project.
 Field name is anything except whitespace. If multiple are present, they are parsed in the order shown [below](#field-names) with the jump operation beeing parsed first.
 
 `static int [field_name] = [value]`  
-_Value needs to be a positive integer (i.e. not java keywords like `Infinity`)_
+`value := integer` (keywords like `Infinity` are not accepted)
 
 `static String [field_name] = [value]`  
-_Value needs to be a double quoted string (eg. `"test"`)_
+`value := "text"`
 
 ## Field names
 

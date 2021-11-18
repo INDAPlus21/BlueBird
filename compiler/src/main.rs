@@ -14,6 +14,7 @@ const INT_OPERATIONS: [(&str, u8); 6] = [
     ("skipeq", 7),
 ];
 
+/// A java source file representation with abstracted keywords and static fields
 #[derive(Debug, Clone, PartialEq, Eq)]
 struct JavaFile {
     pub name: String,
@@ -140,10 +141,12 @@ impl JavaFile {
         })
     }
 
+    /// Get the java class that `self` extends
     fn next(self, objects: &Vec<JavaFile>) -> Option<&JavaFile> {
         objects.iter().find(|x| x.name == self.extends)
     }
 
+    /// Get the chain of classes that extend each other, starting at `self`
     fn chain<'a>(&'a self, objects: &'a Vec<JavaFile>) -> Vec<&'a JavaFile> {
         let mut chain = vec![self];
         let mut after = self;
@@ -229,6 +232,7 @@ fn find_entry<'a>(name: &str, objects: &'a Vec<JavaFile>) -> Option<&'a JavaFile
     objects.iter().find(|x| x.name == name)
 }
 
+/// Returns `(coroutines, instructions)` that merge to create the final binary
 fn compile_chain(chain: Vec<&JavaFile>, objects: &Vec<JavaFile>) -> (Vec<u8>, Vec<u8>) {
     let mut coroutines: Vec<u8> = Vec::new();
     // May not exceed 31
