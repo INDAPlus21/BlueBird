@@ -1,29 +1,29 @@
 # BlueBird
 
-Do you want BlueJ as an IDE for an assembly language? If not, screw you! I do!
+Do you want [BlueJ](https://www.bluej.org/) as an IDE for an assembly language? If not, screw you! I do!
 
-BlueBird is the functional BlueJ assambly language that provides visual clarity with system calls.  
+BlueBird is the functional BlueJ assembly language that combines visual clarity with system calls.  
 _Now turing complete!_
 
-If it is valid Java code, it _should_ compile to a BlueBird binary.  
-Any BlueBird program is also a valid BlueJ project.
+The language is expressed in java class files and uses static fields as instructions. They are then linked to gether with arrows (they extend each other) and are executed in a chain starting from `main`.
 
-# Language guide
+Specifications for the language and binary executables can be found in [`specification.md`](specification.md).
 
-## Quick start
+Factorial example and running instructions for it can be found [below](factorial).
 
-1. Create a BlueJ project
-2. Create a class named `main` (this will be the entry point)
-3. Add classes with static fields as instructions
-4. Draw arrows from main to those classes
-5. Compile with `bluebird_compile [FOLDER]` that points to the BlueJ project folder
-6. Run the program with `bluebird_emulator [BINARY]` that points to the `.bb` binary from step 5
+**Usage (after cloning):**  
+Compile: `cargo run --bin bluebird_compiler [path_to_BlueJ_folder]`  
+Run: `cargo run --bin bluebird_emulator [binary_name].bb`
 
-## Example program
+# Examples
+
+## Add immediate (constant)
 
 This example program adds 15 to the number requested as input when run.
 
 ![Example program in BlueJ](https://i.imgur.com/grJxu4I.png)
+
+Click `Inspect` on the main method in BlueJ shows the call tree for that execution chain.
 
 ```java
 // main.java
@@ -43,21 +43,23 @@ public class Class1 extends Class2
 
 ```java
 // Class2.java
-public class Class2 extends Class3
+public class Class2
 {
     static int call = 1; // print output
 }
 ```
 
-Click `Inspect` on the main method in BlueJ shows the call tree for that execution chain.
-
 ## Factorial
 
-Factorial of `n >= 2` implemented in BlueBird.
+Factorial of `n >= 2` implemented in BlueBird. It works for numbers up to 12 (output is within 32 bit integer).
 
-![Image of factorial implementation]()
+**All nodes:**  
+![Image of factorial implementation](https://i.imgur.com/Y7JCj2O.png)
 
-Each "column" is roughly equivalent to each line in the following Python code:
+**Call tree:**  
+![Call tree of factorial implementation](https://i.imgur.com/VuRcWeo.png)
+
+Each "column" in the first image is roughly equivalent to each line in the following Python code:
 
 ```python
 def factorialWithoutMul(inp5):
@@ -78,9 +80,33 @@ def factorialWithoutMul(inp5):
     return ans6
 ```
 
+#### How to compile and run:
+
+> The following instructions require you to have `cargo` installed
+
+1. Clone this repository (then cd into that folder)
+2. Extract the [`factorial.zip`](factorial.zip) file to a folder called `factorial`
+3. Execute `cargo run --bin bluebird_compiler factorial` to compile
+4. Execute `cargo run --bin bluebird_emulator factorial.bb` to run the program
+5. Type an integer, press enter
+6. PROFIT!!! (the factorial is printed)
+
+The project [`factorial.zip`](factorial.zip) can of course be opened in BlueJ to edit and display the program.
+
+# Language guide
+
+## Quick start - create a program
+
+1. Create a BlueJ project
+2. Create a class named `main` (this will be the entry point)
+3. Add classes with static fields as instructions
+4. Draw arrows from main to those classes
+5. Compile with `bluebird_compile [FOLDER]` that points to the BlueJ project folder
+6. Run the program with `bluebird_emulator [BINARY]` that points to the `.bb` binary from step 5
+
 ## Output
 
-The output of the previous command is automatically piped to the next command. This applies for functions (separate inheritance chains in BlueJ) too.
+The output of the previous command is automatically piped to the next command, following the arrows in BlueJ. This applies for functions in BlueBird too.
 
 ## Static field syntax
 
@@ -102,10 +128,11 @@ Field name is anything except whitespace. If multiple are present, the first val
 - `jump` = `String` - Jump to block with classname (cannot be done from detached chain)
 - `add` = `int` - Add the value from the register with id `int`
 - `addi` = `int` - Add a the immediate `int`
+- `skipeq` = `int` Skip next instruction if output equals value in register with id
 
 # System calls
 
-- `0` - Do nothing
+- `0` - Do nothing (use this as a jump label)
 - `1` - Print output
 - `5` - Read input
 - `10` - Exit program
@@ -116,10 +143,12 @@ Field name is anything except whitespace. If multiple are present, the first val
 - `1` - Temporary register 1
 - `2` - Temporary register 2
 - `3` - Temporary register 3
+- `4` - Reserved by assembler
 - `5` - "Persistent" register 1
 - `6` - "Persistent" register 2
 - `7` - "Persistent" register 3
-- ...
+- `8` - "Persistent" register 4
+- `...`
 
 > Note: all registers are initialized with value `0`  
-> Note: Persistent registers are exactly the same as the temporary ones
+> Note: persistent registers are exactly the same as the temporary ones

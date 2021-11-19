@@ -28,17 +28,7 @@ pub fn describe_byte(byte: u8) -> String {
         }
         (0b010, save) => format!("Save: register {}", save),
         (0b011, load) => format!("Load: register {}", load),
-        (0b100, jump) => format!(
-            "Jump: with offset {}",
-            match jump >> 4 {
-                1 => {
-                    -1 * (jump & 0b1111) as i32
-                }
-                _ => {
-                    jump as i32
-                }
-            }
-        ),
+        (0b100, jump) => format!("Jump: with offset {}", -1 * jump as i32),
         (0b101, add) => format!("Add: register {}", add),
         (0b110, addi) => format!("Addi: immediate {}", addi),
         (0b111, skipeq) => format!("Skipeq: register {}", skipeq),
@@ -56,8 +46,14 @@ fn main() {
     let input_path = args
         .skip(1)
         .next()
-        .expect("Please supply the path as the first argument");
+        .expect("Please supply the path to the executable (ending in .bb) as the first argument");
     let path = Path::new(&input_path);
+    if !path.is_file() {
+        panic!("Passed path is not a file");
+    }
+    if !path.exists() {
+        panic!("Passed path does not exist");
+    }
     let mut file = File::open(path).unwrap();
     let mut bytes = Vec::new();
     file.read_to_end(&mut bytes).unwrap();
@@ -130,12 +126,7 @@ pub fn run_binary(bytes: Vec<u8>, input: i32) -> i32 {
                 }
             }
             (0b100, jump) => {
-                let sign = jump >> 4;
-                if sign == 1 {
-                    return i.saturating_sub((jump & 0b1111) as usize);
-                } else {
-                    return i.saturating_add(jump as usize);
-                };
+                return i.saturating_sub(jump as usize);
             }
             (0b101, add) => {
                 if let Some(&val) = registers.get(&add) {

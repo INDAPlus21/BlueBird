@@ -163,7 +163,7 @@ fn main() {
     let input_path = args
         .skip(1)
         .next()
-        .expect("Please supply the path as the first argument");
+        .expect("Please supply the path to the BlueJ folder as the first argument");
     let path = Path::new(&input_path);
     if !path.is_dir() {
         panic!("Passed path is not a directory");
@@ -256,20 +256,8 @@ fn compile_chain(chain: Vec<&JavaFile>, objects: &Vec<JavaFile>) -> (Vec<u8>, Ve
                 // If place to jump to is in same chain
                 if let Some(to_jump_pos) = chain.iter().position(|&f| f == to_jump) {
                     let offset = to_jump_pos as isize - i as isize;
-                    if matches!(offset, 0..=15) {
-                        panic!("Tried to jump more than 15 blocks, illegal");
-                    }
-                    let offset_bin: u8;
-                    match offset.signum() {
-                        -1 => {
-                            offset_bin = 0b1 << 4 | offset.abs() as u8;
-                        }
-                        _ => {
-                            offset_bin = 0b0 << 4 | offset.abs() as u8;
-                        }
-                    }
                     let mut instruction: u8 = 0b100;
-                    instruction = instruction << 5 | offset_bin;
+                    instruction = instruction << 5 | offset.abs() as u8;
                     instructions.push(instruction);
                 } else {
                     // Else: it is a separate function, add it as a coroutine
