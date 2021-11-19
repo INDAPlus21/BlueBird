@@ -7,7 +7,7 @@ _Now turing complete!_
 
 The language is expressed in java class files and uses static fields as instructions. They are then linked together with arrows (they extend each other) and are executed in a chain starting from `main`.
 
-Specifications for the language and binary executables can be found in [`specification.md`](specification.md).
+Specifications for the language and compiled binary can be found in [`specification.md`](specification.md).
 
 Factorial example and running instructions for it can be found [below](factorial).
 
