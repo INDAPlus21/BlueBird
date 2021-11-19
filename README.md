@@ -5,7 +5,7 @@ Do you want [BlueJ](https://www.bluej.org/) as an IDE for an assembly language? 
 BlueBird is the functional BlueJ assembly language that combines visual clarity with system calls.  
 _Now turing complete!_
 
-The language is expressed in java class files and uses static fields as instructions. They are then linked to gether with arrows (they extend each other) and are executed in a chain starting from `main`.
+The language is expressed in java class files and uses static fields as instructions. They are then linked together with arrows (they extend each other) and are executed in a chain starting from `main`.
 
 Specifications for the language and binary executables can be found in [`specification.md`](specification.md).
 
