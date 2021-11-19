@@ -30,7 +30,7 @@ Immediate range: 0-31
 
 # System calls
 
-- `0` - Reserved for assembler
+- `0` - Do nothing
 - `1` - Print output
 - `5` - Read input
 - `10` - Exit program

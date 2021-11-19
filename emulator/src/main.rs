@@ -15,7 +15,7 @@ pub fn describe_byte(byte: u8) -> String {
             format!(
                 "Syscall: {}",
                 match syscall {
-                    0 => String::from("reserved for compiler"),
+                    0 => String::from("do nothing"),
                     1 => String::from("print to stdout"),
                     5 => String::from("read from stdin"),
                     10 => String::from("exit program"),
@@ -28,7 +28,17 @@ pub fn describe_byte(byte: u8) -> String {
         }
         (0b010, save) => format!("Save: register {}", save),
         (0b011, load) => format!("Load: register {}", load),
-        (0b100, jump) => format!("Jump: to address {}", jump),
+        (0b100, jump) => format!(
+            "Jump: with offset {}",
+            match jump >> 4 {
+                1 => {
+                    -1 * (jump & 0b1111) as i32
+                }
+                _ => {
+                    jump as i32
+                }
+            }
+        ),
         (0b101, add) => format!("Add: register {}", add),
         (0b110, addi) => format!("Addi: immediate {}", addi),
         (0b111, skipeq) => format!("Skipeq: register {}", skipeq),
@@ -63,27 +73,25 @@ fn main() {
     println!("");
 
     println!("{:-^32}", " Running program ");
-    run_binary(bytes);
+    run_binary(bytes, 0);
     println!("{:-^32}", " Program exited ");
 }
 
 /// Run a binary comprised of `bytes`
-pub fn run_binary(bytes: Vec<u8>) {
-    let mut output = 0;
+pub fn run_binary(bytes: Vec<u8>, input: i32) -> i32 {
+    let mut output = input;
     let mut registers: HashMap<u8, i32> = HashMap::from([(0, 0)]);
+    let mut return_address = 0;
 
     let mut functions: Vec<Vec<u8>> = Vec::new();
-    let mut skip_next = false;
 
-    let mut execute_byte = |byte: u8| {
-        if skip_next {
-            skip_next = false;
-            return ();
-        }
+    let mut execute_byte = |i: usize, byte: u8, functions: &Vec<Vec<u8>>| -> usize {
         let operation = byte >> 5;
         let immediate = byte & 0b11111;
         match (operation, immediate) {
             (0b001, syscall) => match syscall {
+                // do nothing
+                0 => {}
                 // print
                 1 => {
                     println!("{}", output);
@@ -92,17 +100,24 @@ pub fn run_binary(bytes: Vec<u8>) {
                 5 => {
                     let mut line = String::new();
                     stdin().lock().read_line(&mut line).unwrap();
-                    line = String::from(line.trim());
                     output = line
+                        .trim()
                         .parse::<i32>()
                         .expect("Only integers are allowed as input");
                 }
                 // exit
                 10 => {
-                    println!("{:-^32}", " Exit called ");
+                    println!("{:-^32}", " Exit from syscall ");
                     std::process::exit(0);
                 }
-                _ => {}
+                // run function
+                16 => {
+                    return_address = i;
+                    if let Some(func) = functions.get(syscall as usize) {
+                        output = run_binary(func.clone(), output);
+                    }
+                }
+                _ => panic!("Invalid system call: {}", syscall),
             },
             (0b010, save) => {
                 registers.insert(save, output);
@@ -113,6 +128,14 @@ pub fn run_binary(bytes: Vec<u8>) {
                 } else {
                     output = 0;
                 }
+            }
+            (0b100, jump) => {
+                let sign = jump >> 4;
+                if sign == 1 {
+                    return i.saturating_sub((jump & 0b1111) as usize);
+                } else {
+                    return i.saturating_add(jump as usize);
+                };
             }
             (0b101, add) => {
                 if let Some(&val) = registers.get(&add) {
@@ -125,17 +148,19 @@ pub fn run_binary(bytes: Vec<u8>) {
             (0b111, skipeq) => {
                 if let Some(&register) = registers.get(&skipeq) {
                     if output == register {
-                        skip_next = true;
+                        return i + 1;
                     }
                 }
             }
             _ => {}
         }
+        i
     };
 
     let mut function_started = false;
     let mut current_function = Vec::new();
-    for byte in bytes {
+    let mut index = 0;
+    while let Some(&byte) = bytes.get(index) {
         match byte {
             0b001_10100 => {
                 function_started = true;
@@ -161,6 +186,8 @@ pub fn run_binary(bytes: Vec<u8>) {
             continue;
         }
 
-        execute_byte(byte);
+        index = execute_byte(index, byte, &functions);
+        index += 1;
     }
+    output
 }

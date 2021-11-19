@@ -49,7 +49,34 @@ public class Class2 extends Class3
 }
 ```
 
-[Download the BlueJ project]()
+Click `Inspect` on the main method in BlueJ shows the call tree for that execution chain.
+
+## Factorial
+
+Factorial of `n >= 2` implemented in BlueBird.
+
+![Image of factorial implementation]()
+
+Each "column" is roughly equivalent to each line in the following Python code:
+
+```python
+def factorialWithoutMul(inp5):
+    ans6 = inp5 # variable to store the final factorial
+    outer1 = 1 # outer loop counter
+    while True:
+        sum3 = 0
+        inner2 = 0 # inner loop counter
+        while True:
+            sum3 += ans6
+            inner2 += 1
+            if inner2 == outer1:
+                break
+        ans6 = sum3
+        outer1 += 1
+        if outer1 == inp5:
+            break
+    return ans6
+```
 
 ## Output
 
@@ -65,17 +92,20 @@ Field name is anything except whitespace. If multiple are present, the first val
 `static String [field_name] = [value]`  
 `value := "text"`
 
+> Note: each block/class needs a static field for the whole program to work. Use syscall 0 to do notning as a label to jump to.
+
 ## Field names
 
 - `call` = `int` - System call code to apply (takes in integer)
 - `save` = `int` - Save previous output to register with id
 - `load` = `int` - Load value from register with id
-- `jump` = `String` - Jump to block with classname
+- `jump` = `String` - Jump to block with classname (cannot be done from detached chain)
 - `add` = `int` - Add the value from the register with id `int`
 - `addi` = `int` - Add a the immediate `int`
 
 # System calls
 
+- `0` - Do nothing
 - `1` - Print output
 - `5` - Read input
 - `10` - Exit program
@@ -83,10 +113,13 @@ Field name is anything except whitespace. If multiple are present, the first val
 ## Register ids
 
 - `0` - Zero constant
-- `1` - Usable register 1
-- `2` - Usable register 2
-- `3` - Usable register 3
+- `1` - Temporary register 1
+- `2` - Temporary register 2
+- `3` - Temporary register 3
+- `5` - "Persistent" register 1
+- `6` - "Persistent" register 2
+- `7` - "Persistent" register 3
+- ...
 
-## Notes
-
-Jumps can only be performed one level, nested jumps are not allowed.
+> Note: all registers are initialized with value `0`  
+> Note: Persistent registers are exactly the same as the temporary ones
